@@ -1,0 +1,135 @@
+---
+title: "Invidual assignment"
+output: html_document
+---
+
+(a) Produce some numerical and graphical summaries of the Weekly data. Do there appear to be any patterns?
+```{r}
+library(ISLR)
+attach(Weekly)
+fix(Weekly)
+pairs(Weekly)
+cor(Weekly[,-9])
+```
+##### From the scatterplot and the correlation table, we can see that the volume of shares traded has a postive relationship with year.
+
+(b) Use the full data set to perform a logistic regression with Direction as the response and the five lag variables plus Volume as predictors. Use the summary function to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?
+```{r}
+glm.fit=glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume,data=Weekly,family=binomial)
+summary(glm.fit)
+```
+##### From the summary table, we can see that Lag2 is statistically significant.
+
+(c) Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.
+```{r}
+glm.probs=predict(glm.fit,type="response")
+glm.pred=rep("Down",1089)
+glm.pred[glm.probs>0.5]="Up"
+table(glm.pred,Weekly$Direction)
+mean(glm.pred==Weekly$Direction)
+```
+##### From the confusion matrix, we can see that there are 48 observations have error I, 430 observations hava error II. 
+
+(d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).
+```{r}
+train=(Year<2009)
+Weekly_train=Weekly[train,]
+weekly_test=Weekly[!train,]
+glm.fit2=glm(Direction~Lag2,data=Weekly_train,family=binomial)
+glm.probs2=predict(glm.fit2,weekly_test,type="response")
+glm.pred=rep("Down",104)
+glm.pred[glm.probs2>0.5]="Up"
+table(glm.pred,weekly_test$Direction)
+mean(glm.pred==weekly_test$Direction)
+```
+
+
+(e) Repeat (d) using LDA.
+```{r}
+library(MASS)
+lda.fit=lda(Direction~Lag2,data=Weekly_train)
+lda.pred=predict(lda.fit,weekly_test)
+table(lda.pred$class,weekly_test$Direction)
+mean(lda.pred$class==weekly_test$Direction)
+```
+
+(g) Repeat (d) using KNN with K = 1.
+```{r}
+library(class)
+set.seed(1)
+knn.pred=knn(as.matrix(Weekly_train[,3]),as.matrix(weekly_test[,3]),Weekly_train$Direction,k=1)
+table(knn.pred,weekly_test$Direction)
+mean(knn.pred==weekly_test$Direction)
+```
+
+
+(h) Which of these methods appears to provide the best results on this data?
+
+##### Both the logistic method and the LDA method has a highest correction rate.
+
+(i) Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.
+```{r}
+#### Use (I(Lag2) as the predictor:
+#####Logistic Regression:
+glm.fit3=glm(Direction~Lag2+Lag1,data=Weekly_train,family=binomial)
+glm.probs3=predict(glm.fit3,weekly_test,type="response")
+glm.pred3=rep("Down",104)
+glm.pred3[glm.probs3>0.5]="Up"
+table(glm.pred3,weekly_test$Direction)
+mean(glm.pred3==weekly_test$Direction)
+```
+
+
+```{r}
+#####LDA Regression:
+lda.fit2=lda(Direction~(Lag2+Lag1),data=Weekly_train)
+lda.pred2=predict(lda.fit2,weekly_test)
+table(lda.pred2$class,weekly_test$Direction)
+mean(lda.pred2$class==weekly_test$Direction)
+```
+```{r}
+#####KNN Classifier:
+c = c(20:50)
+for (k in c){
+  set.seed(1)
+  knn.pred=knn(Weekly_train[,c(2,3)],weekly_test[,c(2,3)],Weekly_train$Direction,k=k)
+  cf.matrix = table(knn.pred,weekly_test$Direction)
+  success_rate = mean(knn.pred == weekly_test$Direction)
+  print(cf.matrix)
+  print(success_rate)
+}
+```
+
+```{r}
+#### Use (Lag2+Lag1+Lag4) as the predictor:
+##### Logistic Regression:
+glm.fit3=glm(Direction~Lag2+Lag1+Lag4,data=Weekly_train,family=binomial)
+glm.probs3=predict(glm.fit3,weekly_test,type="response")
+glm.pred3=rep("Down",104)
+glm.pred3[glm.probs3>0.5]="Up"
+table(glm.pred3,weekly_test$Direction)
+mean(glm.pred3==weekly_test$Direction)
+```
+
+
+```{r}
+##### LDA Regression:
+lda.fit2=lda(Direction~(Lag2+Lag1+Lag4),data=Weekly_train)
+lda.pred2=predict(lda.fit2,weekly_test)
+table(lda.pred2$class,weekly_test$Direction)
+mean(lda.pred2$class==weekly_test$Direction)
+```
+```{r}
+##### KNN Classifier:
+c = c(20:50)
+for (k in c){
+  set.seed(1)
+  knn.pred=knn(Weekly_train[,c(2,3,5)],weekly_test[,c(2,3,5)],Weekly_train$Direction,k=k)
+  cf.matrix = table(knn.pred,weekly_test$Direction)
+  success_rate = mean(knn.pred == weekly_test$Direction)
+  print(cf.matrix)
+  print(success_rate)
+}
+```
+##### When I use Lag1 and Lag2 as predictors, the logtistic regression and LDA regression do not perform as well as KNN classifier. This is because KNN method has a highest correction rate as 0.625 when k=25 while the other two methods' correction rate is 0.57. Also When I add Lag4 as one of the predictors, the KNN method still has a highest correction rate as 0.625 when k=50. 
+##### In sum, the best way to interpret the data is ①use logistic regression and LDA regression using Lag2 as the only predictor ②use KNN classifier while using Lag1 and Lag2 or Lag1,Lag2 and Lag4 as predictors.

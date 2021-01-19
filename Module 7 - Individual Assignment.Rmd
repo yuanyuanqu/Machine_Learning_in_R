@@ -1,0 +1,39 @@
+---
+title: "Individual Assignment"
+output: html_document
+---
+##### (a)
+```{r}
+library(ISLR)
+library(tree)
+fix(Carseats)
+attach(Carseats)
+set.seed(1)
+train=sample(1:nrow(Carseats),200)
+carseats.train=Carseats[train,]
+carsears.test=Carseats[-train,]
+```
+##### (b)
+```{r}
+set.seed(1)
+tree.carseats=tree(Sales~.,Carseats,subset=train)
+pred.carseats=predict(tree.carseats,carsears.test)
+plot(tree.carseats)
+text(tree.carseats,pretty = 0)
+summary(tree.carseats)
+mean((Sales[-train]-pred.carseats)^2)
+
+```
+##### By using 6 variables, I have built a model with 18 leaf nodes.The residual mean deviance is 2.167.
+##### The test MSE is 4.922.
+ 
+##### (c)
+```{r}
+set.seed(5)
+cv.carseats=cv.tree(tree.carseats)
+plot(cv.carseats$size,cv.carseats$dev,type="b")
+prune.carseats=prune.tree(tree.carseats,best=17)
+pred.prunecarseats=predict(prune.carseats,carsears.test)
+mean((pred.prunecarseats-Sales[-train])^2)
+```
+##### After pruning, the test MSE has decreased a little. Now the test MSE is 4.827.

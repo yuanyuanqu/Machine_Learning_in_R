@@ -1,0 +1,70 @@
+---
+title: "Individual Assignment"
+output: html_document
+---
+For Context, Refer to Problem 8 (parts a, b, c, & d). 
+
+##### (e) Now fit a lasso model to the simulated data, again using X, X2, . . . , X10 as predictors. Use cross-validation to select the optimal value of λ. Create plots of the cross-validation error as a function of λ. Report the resulting coefficient estimates, and discuss the results obtained.
+```{r}
+library(ISLR)
+library(glmnet)
+set.seed(6)
+X=rnorm(100)
+set.seed(2)
+noise=rnorm(100)
+Y=1+2*X+3*X^2+4*X^3+noise
+data.full=data.frame(Y,X)
+attach(data.full)
+x.mat=model.matrix(Y~X + I(X^2) + I(X^3) + I(X^4) + I(X^5) + I(X^6) + I(X^7) + I(X^8) + I(X^9) + I(X^10))[,-1]
+set.seed(1)
+lasso.mod=glmnet(x.mat,Y,alpha=1)
+cv.out=cv.glmnet(x.mat,Y,alpha=1)
+plot(cv.out)
+bestlam=cv.out$lambda.min
+bestlam  #optimal value of λ
+predict(lasso.mod,s=bestlam,type="coefficients")[1:11,]
+```
+##### By using cross-validation, we choose 0.096 as the optimal value of λ. The best model using this λ is: Y=1.02+2.03*X+2.85*X^2+3.95*X^3+0.04+X^4
+
+##### (f) Now generate a response vector Y according to the model and perform best subset selection and the lasso. Discuss the results obtained.
+```{r}
+Y=1+2*X^7+noise
+
+library(leaps)
+data=data.frame(Y,X)
+regfit.full=regsubsets(Y~poly(X,10,raw=T),data,nvmax=10)
+reg.summary=summary(regfit.full)
+
+# CP
+which.min(reg.summary$cp)
+plot(reg.summary$cp,xlab = "Number of Predictors",main="CP",type="l")
+points(1,reg.summary$cp[1],col="red",cex=2,pch=20)
+coef(regfit.full,1)
+
+# BIC
+which.min(reg.summary$bic)
+plot(reg.summary$bic,xlab = "Number of Predictors",main="BIC",type="l")
+points(1,reg.summary$bic[1],col="red",cex=2,pch=20)
+coef(regfit.full,1)
+
+# ADJR2
+which.max(reg.summary$adjr2)
+plot(reg.summary$adjr2,xlab = "Number of Predictors",main="Adjusted R^2",type="l")
+points(1,reg.summary$adjr2[1],col="red",cex=2,pch=20)
+coef(regfit.full,1)
+```
+```{r}
+data.full=data.frame(Y,X)
+x.mat=model.matrix(Y~X + I(X^2) + I(X^3) + I(X^4) + I(X^5) + I(X^6) + I(X^7) + I(X^8) + I(X^9) + I(X^10))[,-1]
+set.seed(1)
+lasso.mod=glmnet(x.mat,Y,alpha=1)
+cv.out=cv.glmnet(x.mat,Y,alpha=1)
+plot(cv.out)
+bestlam=cv.out$lambda.min
+bestlam
+
+#WHY THEY ARE THE SAME????????????
+predict(lasso.mod,x=x.mat,y=Y,s=bestlam,type="coefficients",exact=T)[1:11,]
+predict(lasso.mod,s=bestlam,type="coefficients")[1:11,]
+```
+##### In this case, the best subset selection always chooses the same best model when there is one predictor x^7 and the model is: Y=0.96+2*X^7; the lasso chooses the x^7 as the only predictor too and the best model is: Y=2.0+1.9*x^7. We can see that both ways have chosen the accurate predicor, but the intercept of lasso is quite off.

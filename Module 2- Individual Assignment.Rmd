@@ -1,0 +1,68 @@
+---
+title: "Individual assignment 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+##### (a) Fit a multiple regression model to predict Sales using Price, Urban, and US.
+```{r}
+library(ISLR)
+attach(Carseats)
+fix(Carseats)
+lm_sales=lm(Sales~Price+Urban+US)
+summary(lm_sales)
+```
+
+##### (b) Provide an interpretation of each coefficient in the model. Be careful—some of the variables in the model are qualitative!
+##### In this model, the coefficient of sales~price is 13.04, which suggests a postive relationship. 
+##### If the store is in an urban location, we will plug-in 1, and the coefficient of sales~Urbanyes is -0.02, which suggests a negative relationship. If the store is not in an urban location, we plug-in 0 to make it inactive in the model.
+##### If the store is located in US, we will plug-in 1, and the coefficient of sales~USYes is 1.2, which suggests a postive relationship. If the store is not located in US, we plug-in 0 to make it inactive in the model.
+
+
+##### (c) Write out the model in equation form, being careful to handle the qualitative variables properly.
+
+##### Sales=-0.054*Price-0.022*Urban(No=0, Yes=1)+1.2*US(No=0, Yes=1)
+
+
+##### (d) For which of the predictors can you reject the null hypothesis LaTeX: H_{0} : \beta_{j} = 0H 0 : β j = 0?
+
+##### I will reject the null hypothesis for price and USYes.
+
+
+##### (e) On the basis of your response to the previous question, fit a smaller model that only uses the predictors for which there is evidence of association with the outcome.
+```{r}
+lm_sales2=lm(Sales~Price+US)
+summary(lm_sales2)
+```
+
+
+##### (f) How well do the models in (a) and (e) fit the data?
+
+##### The adjusted R-squared value of (e) is higher than (a), which means that the (e) model better fits the data.
+
+
+##### (g) Using the model from (e), obtain 95% confidence intervals for the coefficient(s).
+```{r}
+confint(lm_sales2)
+```
+##### There is 95% confidence to say that the coefficient of Price is between -0.065 and -0.044 and the coefficient of USYes is between 0.691 and 1.708.
+
+
+##### (h) Is there evidence of outliers or high leverage observations in the model from (e)?
+```{r}
+plot(predict(lm_sales2),rstudent(lm_sales2))
+plot(hatvalues(lm_sales2))
+```
+
+##### From the first plot, we can see that there is no outliers. 
+##### From the second plot, we can see that there are several high leverage observations.

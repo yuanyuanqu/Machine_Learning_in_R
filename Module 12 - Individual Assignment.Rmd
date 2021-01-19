@@ -1,0 +1,24 @@
+---
+title: "Individual Assignmnet"
+author: "Yuanyuan Qu"
+date: "12/9/2019"
+output: html_document
+---
+
+
+##### (a)
+
+```{r}
+pr.out=prcomp(USArrests,scale=TRUE)
+pr.var=pr.out$sdev^2
+pve=pr.var/sum(pr.var)
+pve
+```
+##### (b)
+```{r}
+loadings=pr.out$rotation
+new=scale(USArrests)
+sumvar=sum(apply(as.matrix(new)^2,2,sum))
+apply((as.matrix(new)%*%loadings)^2,2,sum)/sumvar
+```
+

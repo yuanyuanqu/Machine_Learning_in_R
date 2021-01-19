@@ -1,0 +1,111 @@
+---
+title: "Individual Assignment"
+output: html_document
+---
+
+# Problem 8
+## (d)
+##### bagging forest
+```{r}
+library(ISLR)
+library(randomForest)
+fix(Carseats)
+set.seed(3)
+train = sample(1:nrow(Carseats),nrow(Carseats)/2)
+carseats.test=Carseats[-train,"Sales"]
+set.seed(1)
+bag.carseats=randomForest(Sales~.,data=Carseats,subset=train,mtry=10,importance=TRUE)
+yhat.bag = predict(bag.carseats, newdata = Carseats[-train,])
+mean((yhat.bag-carseats.test)^2)
+varImpPlot(bag.carseats)
+importance(bag.carseats)
+```
+##### The test MSE is 2.817.
+##### The most importance variables are ShelveLoc, Price and CompPrice.
+
+## (e)
+##### random forest 
+```{r}
+set.seed(2)
+rf.carseats = randomForest(Sales~.,data=Carseats,subset=train,mtry=5,importance = TRUE)
+yhat.rf = predict(rf.carseats,newdata = Carseats[-train,])
+mean((yhat.rf-carseats.test)^2)
+varImpPlot(rf.carseats)
+importance(rf.carseats)
+```
+##### m=1/2p.
+##### The test MSE is increased to 2.95.
+##### The most important varibles are ShelveLoc, Price and Advertising.
+
+# Problem 10
+## (a)
+```{r}
+Hitters=Hitters[-which(is.na(Hitters$Salary)),]
+Hitters$Salary=log(Hitters$Salary)
+```
+## (b)
+```{r}
+train=1:200
+hitters.train=Hitters[train,]
+hitters.test=Hitters[-train,]
+```
+## (c)
+```{r}
+library(gbm)
+x=seq(-5,0,0.1)
+lambda=10^x
+length_lambda=length(lambda)
+test.error=rep(0,length_lambda)
+train.error=rep(0,length_lambda)
+
+for (i in 1:length_lambda){
+  boost.hitters=gbm(Salary~.,data=hitters.train,distribution="gaussian",n.trees=1000,interaction.depth=4,shrinkage=lambda[i],verbose=F)
+  train.pred=predict(boost.hitters,newdata=hitters.train,n.trees=1000)
+  train.error[i]=mean((hitters.train$Salary-train.pred)^2)
+  test.pred=predict(boost.hitters,newdata=hitters.test,n.trees=1000)
+  test.error[i]=mean((hitters.test$Salary-test.pred)^2)
+  }
+plot(lambda,train.error,xlab="Shrinkage",ylab = "Training MSE")
+```
+## (d)
+```{r}
+plot(lambda,test.error,xlab = "Shrinkage",ylab="Test MSE")
+lowest_boostingMSE=min(test.error)
+lowest_boostingMSE
+best_shrinkage=lambda[which.min(lowest_boostingMSE)]
+best_shrinkage
+```
+## (e)
+```{r}
+# lm
+lm.fit=lm(Salary~.,data=hitters.train)
+lm.pred=predict(lm.fit,hitters.test)
+mean((hitters.test$Salary-lm.pred)^2)
+# lasso
+library(glmnet)
+set.seed(1)
+x=model.matrix(Salary~.,data=hitters.train)
+y=hitters.train$Salary
+lasso.fit=glmnet(x,y,alpha=1)
+test_x=model.matrix(Salary~.,data=hitters.test)
+lasso.pred=predict(lasso.fit,s=0.01,newx=test_x)
+mean((hitters.test$Salary-lasso.pred)^2)
+```
+##### The test MSE of lineral model is 0.49, while the test MSE of lasso is 0.47. Compared to lineral and lasso regression, the boosting model has produced the lowest test MSE 0.262.
+
+## (f)
+```{r}
+boost.hitters=gbm(Salary~.,data=hitters.train,distribution="gaussian",n.trees=1000,interaction.depth=4,shrinkage=best_shrinkage,verbose=F)
+summary(boost.hitters)
+```
+##### In the boosting model, the most important varibles are CAtBat, CRuns and CHits.
+
+## (g) 
+```{r}
+library(randomForest)
+set.seed(1)
+bag.hitters=randomForest(Salary~.,data=hitters.train,mtry=19,n.tree=1000)
+bag.pred=predict(bag.hitters,newdata=hitters.test)
+mean((hitters.test$Salary-bag.pred)^2)
+```
+##### The test MSE for bagging model is 0.230, which is the lowest test MSE among all the models we have tried.

@@ -1,0 +1,42 @@
+---
+title: "Individual Assignment"
+author: "Yuanyuan Qu"
+date: "11/25/2019"
+output: html_document
+---
+##### (a)
+```{r}
+library(ISLR)
+library(nnet)
+
+fix(USArrests) 
+hc.complete = hclust(dist(USArrests), method = "complete")
+plot(hc.complete,main="Complete Linkage", xlab = "", sub="", cex=0.9)
+```
+
+##### (b)
+```{r}
+predicted=cutree(hc.complete,k=3)
+clust_1 =predicted[predicted == 1]
+clust_2 =predicted[predicted == 2]
+clust_3 =predicted[predicted == 3]
+names(clust_1)
+names(clust_2)
+names(clust_3)
+```
+##### The clusters are shown above. The first cluster includes from "Alabama" to "South Carolina". The second one includes from "Arkansas" to "Wyoming". The rest of the states belong to the third cluster.
+##### (c)
+```{r}
+USArrests=scale(USArrests)
+hc.complete2 = hclust(dist(USArrests), method = "complete")
+plot(hc.complete2,main="Complete Linkage2", xlab = "", sub="", cex=0.9)
+predicted2=cutree(hc.complete2,k=3)
+clust_21 =predicted2[predicted2 == 1]
+clust_22 =predicted2[predicted2 == 2]
+clust_23 =predicted2[predicted2 == 3]
+names(clust_21)
+names(clust_22)
+names(clust_23)
+```
+##### (d) Scaling the variables may affect the cluster result. In this case, Alaska was assigned to the same clsuter with Illinois before scaling. However, after scaling, they are in the different clsuters. 
+##### In my opinion, I think we should scale variables before the inter-observation dissimilarities are computed for this case. This is because there is the four variables are equally important to the clustering, but they are not in the same scale. This will influence the contribution level of the variable with the small scale.

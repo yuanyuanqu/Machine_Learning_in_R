@@ -1,0 +1,120 @@
+---
+title: "Module1 Individual Assignment 0901"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+###(a)
+library(MASS)
+?Boston
+dim(Boston)
+fix(Boston)
+```
+
+### The cloumns represent the 14 features of Housing Values in Suburbs of Boston, and the rows represent there are 506 housing values in suburbs of BOston.
+
+```{r}
+###(b)
+pairs(Boston)
+```
+
+### The nox and age has a positive correlation.
+
+### The indus and dis has a negative correlation.
+
+```{r}
+###(c)
+attach(Boston)
+plot(crim~zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+lstat+medv)
+```
+
+### The higher proportion of owner-occupied units built prior to 1940, the higher rate of crim.
+
+### The closer distances to Boston employment centres, the higher rate of crim.
+
+### The lower median value of owner-occupied homes, the higher rate of crim.
+
+```{r}
+###(d)
+attach(Boston)
+hist(crim,breaks=20)
+range(crim)
+hist(tax,breaks=20)
+range(tax)
+hist(ptratio,breaks=20)
+range(ptratio)
+```
+
+### Only few of the suburbs(nearly 100 surburbs) have a higher crime rate(over 5).Range:0.00632 to 88.97620
+
+### Over 100 surburbs of Boston have a higher tax rate(more than 600). Range:187 to 711
+
+### Over 200 surburbs of Boston have a higher pupil-teacher ratio by town(over 20).Range: 12.6 to 22
+
+```{r}
+###(e)
+attach(Boston)
+sum(chas==1)
+```
+
+### There are 35 suburbs bound the Charles river.
+
+```{r}
+###(f)
+median(ptratio)
+```
+
+### The median pupil-teacher ratio among the towns is 19.05.
+
+```{r}
+###(g)
+library(dplyr)
+Arranged_medv=arrange(Boston,medv)
+head(Arranged_medv,1)
+summary(Boston)
+```
+
+### The suburb that has the lowest medv is shown abrove.
+
+### Compared to the overall ranges for those predictors:
+
+### crime: above the 3rd quartile;
+
+### zn: no residential land zoned for lots over 25,000 sq.ft.;
+
+### indus: at the 3rd quartile;
+
+### chas: not bound river
+
+### nox: above 3rd quartile;
+
+### rm: below 1st quartile;
+
+### age: at max;
+
+### dis: below 1st quartile;
+
+### rad: at max;
+
+### tax: at 3rd quartile;
+
+### ptratio: at 3rd quartile;
+
+### black: at max;
+
+### lstat: above 3rd quartile.
+
+```{r}
+###(h)
+sum(rm>7)
+sum(rm>8)
+summary(subset(Boston,rm>8))
+```
+
+### The suburbs with more than 8 rooms per dwelling have a lower crime rate, a higher tax, a higher lstat and a lower medv.

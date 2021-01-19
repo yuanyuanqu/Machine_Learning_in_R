@@ -1,0 +1,80 @@
+---
+title: "invidual assignment"
+output: html_document
+---
+(a) Generate a simulated data set as follows:
+
+> set . seed (1)
+> x=rnorm (100)
+> y=x-2* x^2+ rnorm (100)
+
+In this data set, what is n and what is p? Write out the model used to generate the data in equation form.
+
+```{r}
+set.seed (1)
+x=rnorm (100)
+y=x-2* x^2+ rnorm (100)
+```
+
+n = 100;
+p = 2;
+y=x-2*x^2+ε
+
+
+(b) Create a scatterplot of LaTeX: XX against LaTeX: YY. Comment on what you find.
+```{r}
+plot(x,y)
+```
+
+It suggests that x and y have a curved relationship.
+
+(c) Set a random seed, and then compute the LOOCV errors that result from fitting the following four models using least squares:
+
+i. Y = β0 + β1X + LaTeX: \varepsilonε
+ii. Y = β0 + β1X + β2X2 + LaTeX: \varepsilonε
+iii. Y = β0 + β1X + β2X2 + β3X3 + LaTeX: \varepsilonε
+iv. Y = β0 + β1X + β2X2 + β3X3 + β4X4 + LaTeX: \varepsilonε.
+
+Note you may find it helpful to use the data.frame() function to create a single data set containing both LaTeX: XXand LaTeX: YY.
+```{r}
+library(boot)
+set.seed(1)
+Data=data.frame(x,y)
+cv.error=rep(0,4)
+for (i in 1:4){
+glm.fit=glm(y~poly(x,i))
+cv.error[i]=cv.glm(Data,glm.fit)$delta[1]
+}
+cv.error
+```
+
+(d) Repeat (c) using another random seed, and report your results. Are your results the same as what you got in (c)? Why?
+```{r}
+set.seed(2)
+Data=data.frame(x,y)
+cv.error=rep(0,4)
+for (i in 1:4){
+glm.fit=glm(y~poly(x,i))
+cv.error[i]=cv.glm(Data,glm.fit)$delta[1]
+}
+cv.error
+```
+The results are the same. This is because LOOCV always seperates the observation data into n groups, and calculates the average MSE of n groups as the final MSE, which means no matter what seed it use, it can always produce the same final MSE for one observation.
+
+(e) Which of the models in (c) had the smallest LOOCV error? Is this what you expected? Explain your answer.
+
+When i=2, the model has the smallest LOOCV error. This is not suprised because the true relation between x and y is quadratic.
+
+
+(f) Comment on the statistical significance of the coefficient estimates that results from fitting each of the models in (c) using least squares. Do these results agree with the conclusions drawn based on the cross-validation results?
+
+```{r}
+set.seed(1)
+for (i in 1:4){
+glm.fit=glm(y~poly(x,i))
+summary(glm.fit)
+}
+summary(glm.fit)
+```
+
+The results show that x and x^2 are statistically significant, which agrees with the cross-validation results.

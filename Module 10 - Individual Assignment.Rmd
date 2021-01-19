@@ -1,0 +1,95 @@
+---
+title: "Individual Assignment"
+author: "Yuanyuan Qu"
+date: "11/16/2019"
+output: html_document
+---
+#####(1)
+```{r}
+library(neuralnet)
+library(caret)
+library(nnet)
+library(dummies)
+df=read.csv("EastWestAirlinesNN.csv")
+df=na.omit(df)
+phone_sale=df$Phone_sale
+str(df)
+
+#####scale
+numerical=c('Balance','Bonus_miles','Bonus_trans',"Flight_miles_12mo","Flight_trans_12")
+norm.values=preProcess(df[,numerical],method='range')
+df[,numerical]=predict(norm.values,df[,numerical])
+
+```
+
+```{r}
+#####dummy  
+df=data.frame(df,dummy(df$Online_12))
+df=subset(df,select = -c(Online_12))
+```
+
+
+```{r}
+set.seed(3)
+train=sample(nrow(df),nrow(df)*0.7)
+train_df=df[train,]
+test_df=df[-train,]
+```
+
+```{r}
+set.seed(3)
+nn=neuralnet(Phone_sale~.-ï..ID.,data=df[train,],hidden = 5)
+plot(nn,rep='best')
+
+pred.train=compute(nn,subset(df[train,],select = -c(Phone_sale)))$net.result
+pred.train.orig = ifelse(pred.train >= 0.2,1,0)
+train.rmse=sqrt(mean((train_df$Phone_sale-pred.train.orig)^2))
+pred.test=compute(nn,subset(df[-train,],select=-c(Phone_sale)))$net.result
+pred.test.orig = ifelse(pred.test >= 0.2,1,0)
+test.rmse=sqrt(mean((test_df$Phone_sale-pred.test.orig)^2))
+
+
+library(gains)
+##### training lift charts
+set.seed(3)
+gain=gains(df[train,]$Phone_sale,pred.train)
+barplot(gain$mean.resp/mean(df[train,]$Phone_sale),names.arg = gain$depth,xlab='Percentile',ylab='Mean Response',main='Decile-wise lift chart for training')
+
+##### validation lift charts
+set.seed(3)
+gain2=gains(test_df$Phone_sale,pred.test)
+barplot(gain2$mean.resp/mean(test_df$Phone_sale),names.arg = gain2$depth,xlab='Percentile',ylab='Mean Response',main='Decile-wise lift chart for validation')
+
+```
+##### According to the graph, the leftmost bar of the validation decile- wise lift chart means that if we choose the top 10% of the Airlines that gave the highest predicted Phone sales, we would gain 1.4 times the amount of revenue compared to choosing 10% of the Airlines at random.
+
+##### (2)
+##### (i) The training lift chart shows that if we choose the top 10% of the Airlines that gave the highest predicted Phone sales, we would gain 2.6 times the amount of revenue compared to choosing 10% of the Airlines at random. Moreover, as the percentile increases, the amount of revenue would decrease steadily.
+##### (ii) The test lift chart shows that if we choose the top 10% of the Airlines that gave the highest predicted Phone sales, we would gain 1.4 times the amount of revenue compared to choosing 10% of the Airlines at random. Moreover, as the percentile increases, the amount of revenue may not decrease.
+
+##### (3)
+```{r}
+set.seed(3)
+nn3=neuralnet(Phone_sale~.-ï..ID.,data=df[train,],hidden = 1)  # logistic function
+plot(nn3,rep='best')
+pred.train3=compute(nn3,subset(df[train,],select = -c(Phone_sale)))$net.result
+pred.train3.orig = ifelse(pred.train3 >= 0.2,1,0) 
+train3.rmse=sqrt(mean((train_df$Phone_sale-pred.train3.orig)^2))
+pred.test3=compute(nn3,subset(df[-train,],select=-c(Phone_sale)))$net.result
+pred.test3.orig = ifelse(pred.test3 >= 0.2,1,0)
+test3.rmse=sqrt(mean((test_df$Phone_sale-pred.test3.orig)^2))
+
+
+##### training lift charts
+set.seed(3)
+gain3=gains(df[train,]$Phone_sale,pred.train3)
+barplot(gain3$mean.resp/mean(df[train,]$Phone_sale),names.arg = gain3$depth,xlab='Percentile',ylab='Mean Response',main='Decile-wise lift chart for training')
+
+##### validation lift charts
+set.seed(3)
+gain4=gains(test_df$Phone_sale,pred.test3)
+barplot(gain4$mean.resp/mean(test_df$Phone_sale),names.arg = gain4$depth,xlab='Percentile',ylab='Mean Response',main='Decile-wise lift chart for validation')
+```
+##### When we set the number of hidden rodes to 1, the gap of top 10% mean response between training and test data is 1.9-1.7. However, if we set the number of hidden nodes to 5, the gap would be 2.6-1.4=1.2, which suggests overfitting. 
+
+##### (4) If the weight of one variable is 0, then this variable will have no effects on the ouput. If the weight of one variable is positive, then it will effect the output positively. If the weight of one variable is negative, then the effect of variable will decrease. 
